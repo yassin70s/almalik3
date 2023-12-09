@@ -1,0 +1,78 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+{{block.super}}
+
+<script>
+    var entry_form = document.getElementById("entry_form")
+   
+    function get_class_field(field_name,hidden,value) {
+        var row = document.getElementsByClassName(`form-row field-${field_name}`)
+        if (row.length && row[0].classList.length) {
+            row[0].classList.add("hidden")
+            if (!hidden) {
+                row[0].classList.remove("hidden")
+            }
+             document.getElementsByName(field_name)[0].value = value
+        }
+        
+        
+    }
+    function is_hidden(field_name) {
+        let roww = document.getElementsByClassName(`form-row field-${field_name}`)
+        let hidden = false
+        if (roww.length) {
+            if ( roww[0].classList.length >= 2) {
+            console.log(roww[0])
+            
+            for (let index = 0; index < roww[0].classList.length; index++) {
+                if (roww[0].classList[index] == 'hidden') {
+                    hidden = true 
+                }
+            }
+            
+            
+        }
+        }
+        
+        return hidden
+        
+        
+    }
+    async function chak_form() {
+        var data = {}
+        console.log(5544,entry_form.elements)
+        for (let index = 0; index < entry_form.elements.length; index++) {
+            const element = entry_form.elements[index];
+            data[element.name] = {value:element.value,hidden:is_hidden(element.name)}
+        }
+        await fetch("{{change_form_chek_api_url}}",{
+                method: 'post',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    "Content-Type":"application/json",
+                    //"X-Requested-With":"XMLHttpRequest",
+                    "Accept":"application/json",
+                },     
+                body:JSON.stringify({fields:data}),
+                }
+            )
+            .then(reaponse => reaponse.json()).then(data =>{
+                    console.log(data);
+                    for (let index = 0; index < data.fields.length; index++) {
+                        const field = data.fields[index];
+                        get_class_field(field.name,field.hidden,field.value)
+                        
+                    }
+            })
+                    
+            
+    };
+    
+    entry_form.addEventListener("change",chak_form);
+    entry_form.addEventListener("load",chak_form());
+
+</script>
+
+{% endblock %}
+

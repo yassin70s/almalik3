@@ -1,0 +1,771 @@
+{% extends "layouts/default.html" %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'assets/js/file-upload-with-preview.iife.js' %}"></script>
+
+ 
+
+
+
+<link rel="stylesheet" type="text/css" href="{% static 'assets/css/quill.snow.css' %}" />
+<script src="{% static 'assets/js/quill.js' %}"></script>
+
+<div x-data="changeList">
+    <div class="flex gap-5 relative sm:h-[calc(100vh_-_150px)] h-full w-full">
+        <div class="panel p-4 flex-none w-[240px] max-w-full  absolute xl:relative z-10 space-y-4 xl:h-auto h-full xl:block ltr:xl:rounded-r-md ltr:rounded-r-none rtl:xl:rounded-l-md rtl:rounded-l-none hidden" :class="{'!block':isShowTaskMenu}">
+            <div class="flex flex-col h-full pb-16">
+                <div class="pb-5">
+                    <div class="flex text-center items-center">
+                        <div class="shrink-0">
+
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
+                                <path opacity="0.5" d="M16 4.00195C18.175 4.01406 19.3529 4.11051 20.1213 4.87889C21 5.75757 21 7.17179 21 10.0002V16.0002C21 18.8286 21 20.2429 20.1213 21.1215C19.2426 22.0002 17.8284 22.0002 15 22.0002H9C6.17157 22.0002 4.75736 22.0002 3.87868 21.1215C3 20.2429 3 18.8286 3 16.0002V10.0002C3 7.17179 3 5.75757 3.87868 4.87889C4.64706 4.11051 5.82497 4.01406 8 4.00195" stroke="currentColor" stroke-width="1.5" />
+                                <path d="M8 14H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                <path d="M7 10.5H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                <path d="M9 17.5H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                <path d="M8 3.5C8 2.67157 8.67157 2 9.5 2H14.5C15.3284 2 16 2.67157 16 3.5V4.5C16 5.32843 15.3284 6 14.5 6H9.5C8.67157 6 8 5.32843 8 4.5V3.5Z" stroke="currentColor" stroke-width="1.5" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold ltr:ml-3 rtl:mr-3">{{title}}</h3>
+                    </div>
+                </div>
+                <div class="h-px w-full border-b border-[#e0e6ed] dark:border-[#1b2e4b] mb-5"></div>
+                <div class="perfect-scrollbar relative pr-3.5 -mr-3.5 h-full grow">
+                    <div class="space-y-1">
+
+                        
+                        
+                        <template x-for="filter in changeList.config.filters" >
+                            <div>
+                                <div class="h-px w-full border-b border-[#e0e6ed] dark:border-[#1b2e4b]"></div>
+                                <div x-text="filter.title" class="text-white-dark px-1 py-3"></div>
+                                <template x-for="choice in filter.choices">
+                                    <button :class="{ 'ltr:pl-3 rtl:pr-3 bg-gray-100 dark:bg-[#181F32]': choice.selected }" @click="get_changeList(choice.query_string)" type="button" class="w-full flex items-center h-10 p-1 hover:bg-white-dark/10 rounded-md dark:hover:bg-[#181F32] font-medium text-success ltr:hover:pl-3 rtl:hover:pr-3 duration-300" >
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 rotate-45 fill-success shrink-0">
+                                            <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="currentColor" stroke-width="1.5" />
+                                        </svg>
+                                        <div x-text="choice.display" class="ltr:ml-3 rtl:mr-3"></div>
+                                    </button>
+    
+                                </template>
+
+                            </div>
+
+                        </template>
+
+                       
+
+
+
+                    </div>
+                </div>
+                <div class="ltr:left-0 rtl:right-0 absolute bottom-0 p-4 w-full">
+                    <button class="btn btn-primary w-full" type="button" @click="addEditRow()">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        أضف {{ cl.opts.verbose_name_plural|capfirst }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="overlay bg-black/60 z-[5] w-full h-full rounded-md absolute hidden" :class="{ '!block xl:!hidden': isShowTaskMenu }" @click="isShowTaskMenu = !isShowTaskMenu"></div>
+        
+
+        
+
+
+        <div class="panel p-0 flex-1 overflow-auto h-full">
+            <div class="flex flex-col h-full">
+                
+                <div class="p-4 flex sm:flex-row flex-col w-full sm:items-center gap-4">
+                    <div class="ltr:mr-3 rtl:ml-3 flex items-center">
+                        <button type="button" class="xl:hidden hover:text-primary block ltr:mr-3 rtl:ml-3" @click="isShowTaskMenu = !isShowTaskMenu">
+
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6">
+                                <path d="M20 7L4 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                <path opacity="0.5" d="M20 12L4 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                <path d="M20 17L4 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                            </svg>
+                        </button>
+                        <div class="relative group flex-1">
+                            <input placeholder="بحث في {{cl.opts.verbose_name_plural}} ..." x-model="searchRow" @input="get_changeList(`?q=${searchRow}`)"  type="text" class="form-input peer ltr:!pr-10 rtl:!pl-10" />
+                            <div class="absolute ltr:right-[11px] rtl:left-[11px] top-1/2 -translate-y-1/2 peer-focus:text-primary">
+
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4">
+                                    <circle cx="11.5" cy="11.5" r="9.5" stroke="currentColor" stroke-width="1.5" opacity="0.5"></circle>
+                                    <path d="M18.5 18.5L22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center sm:justify-end  sm:flex-auto flex-1">
+                        <p class="ltr:mr-3 rtl:ml-3" x-text="pager.startIndex+1 + '-' +( pager.endIndex+1) + ' of ' + filteredTasks.length"></p>
+                        <button type="button" :disabled="pager.currentPage == 1" class="bg-[#f4f4f4] rounded-md p-1 enabled:hover:bg-primary-light dark:bg-white-dark/20 enabled:dark:hover:bg-white-dark/30 ltr:mr-3 rtl:ml-3 disabled:opacity-60 disabled:cursor-not-allowed" @click="pager.currentPage--,searchTasks(false)">
+
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 rtl:rotate-180">
+                                <path d="M15 5L9 12L15 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </button>
+                        <button type="button" :disabled="pager.currentPage == pager.totalPages" class="bg-[#f4f4f4] rounded-md p-1 enabled:hover:bg-primary-light dark:bg-white-dark/20 enabled:dark:hover:bg-white-dark/30 disabled:opacity-60 disabled:cursor-not-allowed" @click="pager.currentPage++,searchTasks(false)">
+
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:rotate-180">
+                                <path d="M15 5L9 12L15 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="h-px w-full border-b border-[#e0e6ed] dark:border-[#1b2e4b]"></div>
+                <template x-if="changeList.rows.length">
+
+                    <div class="table-responsive grow overflow-y-auto sm:min-h-[300px] min-h-[400px]">
+                        <table class="table-hover">
+                            <tbody>
+                                <template x-for="row in changeList.rows">
+                                    <tr  :key="row.id" class="group cursor-pointer" :class="{ 'bg-white-light/30 dark:bg-[#1a2941]' : task.status === 'complete' }">
+                                        <template x-for="value,name in row.cells">
+                                            <td @click="viewRow(row)">
+                                                <div x-html='value'></div>
+                                            </td>
+                                        </template>
+
+                                         <td class="w-1">
+                                            <div class="flex items-center justify-between w-max">
+                                                
+                                                <div x-data="dropdown" @click.outside="open = false" class="dropdown">
+                                                    <button type="button" @click="toggle">
+
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 rotate-90 opacity-70">
+                                                            <circle cx="5" cy="12" r="2" stroke="currentColor" stroke-width="1.5"></circle>
+                                                            <circle opacity="0.5" cx="12" cy="12" r="2" stroke="currentColor" stroke-width="1.5"></circle>
+                                                            <circle cx="19" cy="12" r="2" stroke="currentColor" stroke-width="1.5"></circle>
+                                                        </svg>
+                                                    </button>
+                                                    <template x-if="1==1">
+                                                        <ul x-cloak x-show="open" x-transition x-transition.duration.300ms class="ltr:right-0 rtl:left-0 whitespace-nowrap">
+                                                            <li>
+                                                                <a href="javascript:;" @click="addEditRow(row.admin_change_url)">
+
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0">
+                                                                        <path opacity="0.5" d="M4 22H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                                                        <path d="M14.6296 2.92142L13.8881 3.66293L7.07106 10.4799C6.60933 10.9416 6.37846 11.1725 6.17992 11.4271C5.94571 11.7273 5.74491 12.0522 5.58107 12.396C5.44219 12.6874 5.33894 12.9972 5.13245 13.6167L4.25745 16.2417L4.04356 16.8833C3.94194 17.1882 4.02128 17.5243 4.2485 17.7515C4.47573 17.9787 4.81182 18.0581 5.11667 17.9564L5.75834 17.7426L8.38334 16.8675L8.3834 16.8675C9.00284 16.6611 9.31256 16.5578 9.60398 16.4189C9.94775 16.2551 10.2727 16.0543 10.5729 15.8201C10.8275 15.6215 11.0583 15.3907 11.5201 14.929L11.5201 14.9289L18.3371 8.11195L19.0786 7.37044C20.3071 6.14188 20.3071 4.14999 19.0786 2.92142C17.85 1.69286 15.8581 1.69286 14.6296 2.92142Z" stroke="currentColor" stroke-width="1.5" />
+                                                                        <path opacity="0.5" d="M13.8879 3.66406C13.8879 3.66406 13.9806 5.23976 15.3709 6.63008C16.7613 8.0204 18.337 8.11308 18.337 8.11308M5.75821 17.7437L4.25732 16.2428" stroke="currentColor" stroke-width="1.5" />
+                                                                    </svg>
+                                                                    تعديل
+                                                                </a>
+                                                            </li>
+                                                            <li><a href="javascript:;" @click="toggle,  deleteTask(task, 'delete' )">
+
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
+                                                                        <path d="M20.5001 6H3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path d="M18.8334 8.5L18.3735 15.3991C18.1965 18.054 18.108 19.3815 17.243 20.1907C16.378 21 15.0476 21 12.3868 21H11.6134C8.9526 21 7.6222 21 6.75719 20.1907C5.89218 19.3815 5.80368 18.054 5.62669 15.3991L5.16675 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path opacity="0.5" d="M9.5 11L10 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path opacity="0.5" d="M14.5 11L14 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path opacity="0.5" d="M6.5 6C6.55588 6 6.58382 6 6.60915 5.99936C7.43259 5.97849 8.15902 5.45491 8.43922 4.68032C8.44784 4.65649 8.45667 4.62999 8.47434 4.57697L8.57143 4.28571C8.65431 4.03708 8.69575 3.91276 8.75071 3.8072C8.97001 3.38607 9.37574 3.09364 9.84461 3.01877C9.96213 3 10.0932 3 10.3553 3H13.6447C13.9068 3 14.0379 3 14.1554 3.01877C14.6243 3.09364 15.03 3.38607 15.2493 3.8072C15.3043 3.91276 15.3457 4.03708 15.4286 4.28571L15.5257 4.57697C15.5433 4.62992 15.5522 4.65651 15.5608 4.68032C15.841 5.45491 16.5674 5.97849 17.3909 5.99936C17.4162 6 17.4441 6 17.5 6" stroke="currentColor" stroke-width="1.5"></path>
+                                                                    </svg>
+                                                                    حذف</a></li>
+                                                            <li>
+                                                                <a href="javascript:;" @click="toggle, setImportant(task)">
+
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0">
+                                                                        <path d="M9.15316 5.40838C10.4198 3.13613 11.0531 2 12 2C12.9469 2 13.5802 3.13612 14.8468 5.40837L15.1745 5.99623C15.5345 6.64193 15.7144 6.96479 15.9951 7.17781C16.2757 7.39083 16.6251 7.4699 17.3241 7.62805L17.9605 7.77203C20.4201 8.32856 21.65 8.60682 21.9426 9.54773C22.2352 10.4886 21.3968 11.4691 19.7199 13.4299L19.2861 13.9372C18.8096 14.4944 18.5713 14.773 18.4641 15.1177C18.357 15.4624 18.393 15.8341 18.465 16.5776L18.5306 17.2544C18.7841 19.8706 18.9109 21.1787 18.1449 21.7602C17.3788 22.3417 16.2273 21.8115 13.9243 20.7512L13.3285 20.4768C12.6741 20.1755 12.3469 20.0248 12 20.0248C11.6531 20.0248 11.3259 20.1755 10.6715 20.4768L10.0757 20.7512C7.77268 21.8115 6.62118 22.3417 5.85515 21.7602C5.08912 21.1787 5.21588 19.8706 5.4694 17.2544L5.53498 16.5776C5.60703 15.8341 5.64305 15.4624 5.53586 15.1177C5.42868 14.773 5.19043 14.4944 4.71392 13.9372L4.2801 13.4299C2.60325 11.4691 1.76482 10.4886 2.05742 9.54773C2.35002 8.60682 3.57986 8.32856 6.03954 7.77203L6.67589 7.62805C7.37485 7.4699 7.72433 7.39083 8.00494 7.17781C8.28555 6.96479 8.46553 6.64194 8.82547 5.99623L9.15316 5.40838Z" stroke="currentColor" stroke-width="1.5"></path>
+                                                                    </svg>
+                                                                    <span x-text="task.status === 'important' ? 'Not Important' : 'Important'"></span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </template>
+                                                    <template x-if="1==0">
+                                                        <ul x-cloak x-show="open" x-transition x-transition.duration.300ms class="ltr:right-0 rtl:left-0 w-44">
+                                                            <li>
+                                                                <a href="javascript:;" @click="toggle, deleteTask(task, 'deletePermanent' )">
+
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
+                                                                        <path d="M20.5001 6H3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path d="M18.8334 8.5L18.3735 15.3991C18.1965 18.054 18.108 19.3815 17.243 20.1907C16.378 21 15.0476 21 12.3868 21H11.6134C8.9526 21 7.6222 21 6.75719 20.1907C5.89218 19.3815 5.80368 18.054 5.62669 15.3991L5.16675 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path opacity="0.5" d="M9.5 11L10 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path opacity="0.5" d="M14.5 11L14 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                                                        <path opacity="0.5" d="M6.5 6C6.55588 6 6.58382 6 6.60915 5.99936C7.43259 5.97849 8.15902 5.45491 8.43922 4.68032C8.44784 4.65649 8.45667 4.62999 8.47434 4.57697L8.57143 4.28571C8.65431 4.03708 8.69575 3.91276 8.75071 3.8072C8.97001 3.38607 9.37574 3.09364 9.84461 3.01877C9.96213 3 10.0932 3 10.3553 3H13.6447C13.9068 3 14.0379 3 14.1554 3.01877C14.6243 3.09364 15.03 3.38607 15.2493 3.8072C15.3043 3.91276 15.3457 4.03708 15.4286 4.28571L15.5257 4.57697C15.5433 4.62992 15.5522 4.65651 15.5608 4.68032C15.841 5.45491 16.5674 5.97849 17.3909 5.99936C17.4162 6 17.4441 6 17.5 6" stroke="currentColor" stroke-width="1.5"></path>
+                                                                    </svg>
+                                                                    Permanent Delete
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="javascript:;" @click="toggle, deleteTask(task, 'restore')">
+
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
+                                                                        <g clip-path="url(#clip0_1276_6232)">
+                                                                            <path d="M19.7285 10.9288C20.4413 13.5978 19.7507 16.5635 17.6569 18.6573C14.5327 21.7815 9.46736 21.7815 6.34316 18.6573C3.21897 15.5331 3.21897 10.4678 6.34316 7.3436C9.46736 4.21941 14.5327 4.21941 17.6569 7.3436L18.364 8.05071M18.364 8.05071H14.1213M18.364 8.05071V3.80807" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                                        </g>
+                                                                        <defs>
+                                                                            <clipPath id="clip0_1276_6232">
+                                                                                <rect width="24" height="24" fill="white"></rect>
+                                                                            </clipPath>
+                                                                        </defs>
+                                                                    </svg>
+                                                                    Restore Task
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    
+                </template>
+                <template x-if="!changeList.rows.length">
+                    <div class="flex justify-center items-center sm:min-h-[300px] min-h-[400px] font-semibold text-lg h-full">
+                        لا يوجد بيانات
+                    </div>
+                </template>
+            </div>
+        </div>
+
+
+        <div  class=" fixed inset-0 bg-[black]/60 z-[999] px-4 overflow-y-auto hidden" :class="{'!block':addRowModal}">
+            <div class="w-full flex items-center justify-center min-h-screen">
+                <div  x-show="addRowModal" x-transition x-transition.duration.300 @click.outside="addRowModal = false" class="panel border-0 p-0 rounded-lg overflow-hidden md:w-full max-w-5xl w-[90%] my-8">
+                    <div class="p-0">
+                        <iframe name="iframechangeForm" @load="loadIframe" :src="changeFormUrl" width="100%" height="650" frameborder="0"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+        <div class="fixed inset-0 bg-[black]/60 z-[999] overflow-y-auto hidden" :class="{'!block':viewRowModal}">
+            <div class="flex items-center justify-center min-h-screen px-4" @click.self="viewRowModal = false">
+                <div x-show="viewRowModal" x-transition x-transition.duration.300 class="panel border-0 p-0 rounded-lg overflow-hidden md:w-full max-w-lg w-[90%] my-8">
+                    <button type="button" class="absolute top-4 ltr:right-4 rtl:left-4 text-white-dark hover:text-dark" @click="viewRowModal = false">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="flex items-center flex-wrap gap-2 text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">
+                        
+                    <div class="p-5">
+                        <div class="text-base prose" x-html="selectedRow.description"></div>
+
+                        <div class="flex justify-end items-center mt-8">
+                            <button type="button" class="btn btn-outline-danger" @click="viewRowModal = false">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+ 
+<!-- start hightlight js -->
+<link rel="stylesheet" href="{% static 'assets/css/highlight.min.css' %}">
+<script src="{% static 'assets/js/highlight.min.js' %}"></script>
+<!-- end hightlight js -->
+
+
+<script>
+    // single image upload
+    new FileUploadWithPreview.FileUploadWithPreview('myFirstImage', {
+        images: {
+            baseImage: "{% static 'assets/images/file-preview.svg' %}",
+            backgroundImage: '',
+        },
+    });
+
+    
+    
+</script>
+
+
+
+
+<script>
+
+    const defaultParams = {
+        id: null,
+        title: '',
+        description: '',
+        descriptionText: '',
+        assignee: '',
+        path: '',
+        tag: '',
+        priority: 'low'
+    };
+    document.addEventListener("alpine:init", () => {
+        Alpine.data("changeList", () => ({
+
+            
+            
+            
+            init() {
+                this.get_changeList();
+                this.addEditProject();
+                
+
+                
+                
+            },
+            
+            
+            async get_changeList(query_string=""){
+                
+                changeList = await (await fetch("{{change_list_api_url}}"+query_string)).json()
+                this.changeList = changeList
+                
+                
+            },
+            activeTab:1,
+            
+            isSubmitForm:false,
+            changeForm:{},
+            changeList:{},
+            selectedRow:null,
+            viewRowModal: false,
+            isShowRowMenu:false,
+            addRowModal:false,
+            changeFormUrl:false,
+            searchRow:null,
+            async searchRows(){
+                this.get_changeList(`?q=${searchRow}`)
+
+            },
+            viewRow(row) {
+                this.selectedRow = row;
+                setTimeout(() => {
+                    this.viewRowModal = true;
+                });
+            },
+
+            async getChangeForm(change_url){
+                await(this.changeFormUrl = null)
+                //console.log(change_url,8888)
+                
+                if (change_url) {
+                   await( this.changeFormUrl = change_url);
+                    
+                }else{
+                   await(this.changeFormUrl = "{{add_admin_url}}");
+                   
+                }
+            },
+            async addEditProject(change_url) {
+            
+                //add = await (await fetch("http://127.0.0.1:8000/admin/services/website/add/?_popup")).text()
+                if (change_url) {
+                    formUrl = change_url
+                    method = "PATCH"
+                    
+                }else{
+                    formUrl = "{{add_api_url}}"
+                    method = "post"
+                }
+
+                changeFormApi = await (await fetch(formUrl)).json()
+                this.isSubmitForm = false
+                fields = []
+                for (let index = 0; index < changeFormApi.fields.length; index++) {
+                    const field = changeFormApi.fields[index]
+                    if (change_url) {
+                        value = field.attrs.current_value
+                    }else{
+                        value = field.attrs.initial
+                    }
+                    fields.push({
+                            type:field.type,
+                            attrs:field.attrs,
+                            name:field.name,
+                            error:null,
+                            isChange:false,
+                            value:value,
+                        })
+                };
+                changeForm = {
+                    fields:fields,
+                    config:changeFormApi.config,
+                    method:method,
+                }
+                this.changeForm = changeForm
+                console.log(this.changeForm)
+                
+
+                
+                
+                
+            },
+            
+            async addEditRow(change_url) {
+                //this.addEditProject(change_url);
+                this.getChangeForm(change_url)
+                this.isShowRowMenu = false;
+                this.addRowModal = true;
+            },
+
+            loadIframe(){
+                var contentIframe = document.getElementsByTagName("iframe")[0].contentDocument
+                if (contentIframe.getElementsByClassName("errornote").length ) {
+                    this.showMessage(contentIframe.getElementsByClassName("errornote")[0].textContent,"error")
+                }
+                if (contentIframe.forms.length == 0) {
+                    this.showMessage("تم الحفض بنجاح")
+                    this.addRowModal = false
+                    this.get_changeList()
+                }
+            },
+
+            
+            saveRow() {
+
+                this.saveProject();
+            
+                },
+
+
+
+            
+
+
+            async saveProject() {
+                //console.log(window.frames["form_add_iframe"].document.getElementById("id_user").value)
+                
+                
+                data = {}
+                for (let index = 0; index < this.changeForm.fields.length; index++) {
+                    const field = this.changeForm.fields[index];
+                    data[field.name] = field.value
+                }
+                
+                data["user"] = "{{request.user.id}}"
+                
+                console.log(data)
+                await fetch("{{add_api_url}}", {
+                        method: this.changeForm.method,
+                        
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            "Content-Type":"application/json",
+                            //"X-Requested-With":"XMLHttpRequest",
+                            "Accept":"application/json",
+                        },
+                        
+                        body:JSON.stringify({data:data}),
+                    })
+                    .then(reaponse => reaponse.json()).then(data =>{
+                        console.log(data);
+                        if (data.data) {
+                            //swalWithBootstrapButtons.fire('تم قبول العرض!', 'لقد قمت بقبول العرض الخاص بهاذا المشروع', 'success');
+                            //swalWithBootstrapButtons.fire('تم قبول العرض!', 'لقد قمت بقبول العرض الخاص بهاذا المشروع', 'success');
+
+                            this.showMessage("تم الحفظ بنجاح")
+                            this.addRowModal = false
+                            this.get_changelist()
+
+        
+                        }
+                        else{
+                            if (data.detail) {
+                                //swalWithBootstrapButtons.fire('لم تنجح العملية',data.detail, 'error')
+                                this.showMessage(data.detail,"errors")
+
+                            }
+                            if (data.errors) {
+                                //swalWithBootstrapButtons.fire('لم تنجح العملية',projectStart.errors, 'error')
+                                this.showMessage("لديك بعض الأخطاء","errors")
+                                errors = Object.entries(data.errors)
+                                for (let index = 0; index < this.changeForm.fields.length; index++) {
+                                    //console.log(errors)
+                                    this.changeForm.fields[index].error = null
+                                    this.changeForm.fields[index].isChange = false
+                                    for (let i = 0; i < errors.length; i++) {
+                                        if (this.changeForm.fields[index].name == errors[i][0]) {
+                                            this.changeForm.fields[index].error = errors[i][1]
+                                            
+                                        }
+                                        
+                                    }
+                                }
+                            };
+                                        
+                        }
+                        
+                        this.isSubmitForm = true
+                        
+                    
+                    });
+                
+            
+            },
+
+            showMessage(msg = '', type = 'success') {
+                const toast = window.Swal.mixin({
+                    toast: true,
+                    position: 'top',
+                    showConfirmButton: false,
+                    timer: 3000,
+                });
+                toast.fire({
+                    icon: type,
+                    title: msg,
+                    padding: '10px 20px',
+                });
+            },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            selectedTab: '',
+            isShowTaskMenu: false,
+            addTaskModal: false,
+            viewTaskModal: false,
+
+            params: JSON.parse(JSON.stringify(defaultParams)),
+            allTasks: [ 
+                
+            ],
+
+            filteredTasks: [],
+            pagedTasks: [],
+            searchTask: '',
+            selectedTask: defaultParams,
+
+            pager: {
+                currentPage: 1,
+                totalPages: 0,
+                pageSize: 10,
+                startIndex: 0,
+                endIndex: 0,
+            },
+            quillEditor: null,
+
+
+
+
+            initEditor() {
+                    this.quillEditor = new Quill(this.$refs.editor, {
+                        theme: 'snow'
+                    });
+            },
+            searchTasks(isResetPage = true) {
+                if (isResetPage) {
+                    this.pager.currentPage = 1;
+                }
+                let res;
+                if (this.selectedTab === 'complete' || this.selectedTab === 'important' || this.selectedTab === 'trash') {
+                    res = this.allTasks.filter((d) => d.status === this.selectedTab);
+                } else {
+                    res = this.allTasks.filter((d) => d.status != 'trash');
+                }
+
+                if (this.selectedTab === 'team' || this.selectedTab === 'update') {
+                    res = res.filter((d) => d.tag === this.selectedTab);
+                } else if (this.selectedTab === 'high' || this.selectedTab === 'medium' || this.selectedTab === 'low') {
+                    res = res.filter((d) => d.priority === this.selectedTab);
+                }
+                this.filteredTasks = res.filter((d) => d.title?.toLowerCase().includes(this.searchTask));
+                this.getPager();
+        },
+        getPager() {
+                setTimeout(() => {
+                    if (this.filteredTasks.length) {
+                        this.pager.totalPages = this.pager.pageSize < 1 ? 1 : Math.ceil(this.filteredTasks.length / this.pager.pageSize);
+                        if (this.pager.currentPage > this.pager.totalPages) {
+                            this.pager.currentPage = 1;
+                        }
+                        this.pager.startIndex = (this.pager.currentPage - 1) * this.pager.pageSize;
+                        this.pager.endIndex = Math.min(this.pager.startIndex + this.pager.pageSize - 1, this.filteredTasks.length - 1);
+                        this.pagedTasks = this.filteredTasks.slice(this.pager.startIndex, this.pager.endIndex + 1);
+                    } else {
+                        this.pagedTasks = [];
+                        this.pager.startIndex = -1;
+                        this.pager.endIndex = -1;
+                    }
+                });
+            },
+
+            setPriority(task, name) {
+                let item = this.filteredTasks.find((d) => d.id === task.id);
+                item.priority = name;
+                this.searchTasks(false);
+            },
+
+            setTag(task, name) {
+                let item = this.filteredTasks.find((d) => d.id === task.id);
+                item.tag = name;
+                this.searchTasks(false);
+            },
+
+            tabChanged(type) {
+
+                this.selectedTab = type;
+                this.searchTasks();
+                this.isShowTaskMenu = false;
+                //this.get_changeList("{{change_list_api_url}}")
+            },
+
+            taskComplete(task) {
+                let item = this.filteredTasks.find((d) => d.id === task.id);
+                item.status = item.status === 'complete' ? '' : 'complete';
+                this.searchTasks(false);
+            },
+
+            setImportant(task) {
+                let item = this.filteredTasks.find((d) => d.id === task.id);
+                item.status = item.status === 'important' ? '' : 'important';
+                this.searchTasks(false);
+            },
+
+            viewTask(item) {
+                this.selectedTask = item;
+                setTimeout(() => {
+                    this.viewTaskModal = true;
+                });
+            },
+
+            addEditTask(task) {
+
+                this.addEditProject();
+
+
+                this.isShowTaskMenu = false;
+
+                this.params = JSON.parse(JSON.stringify(defaultParams));
+                this.quillEditor.root.innerHTML = '';
+
+                if (task) {
+                    this.params = JSON.parse(JSON.stringify(task));
+                    this.quillEditor.root.innerHTML = this.params.description;
+                }
+
+                this.addTaskModal = true;
+            },
+
+            deleteTask(task, type) {
+                if (type === 'delete') {
+                    task.status = 'trash';
+                }
+                if (type === 'deletePermanent') {
+                    this.allTasks = this.allTasks.filter((d) => d.id != task.id);
+                } else if (type === 'restore') {
+                    task.status = '';
+                }
+                this.searchTasks(false);
+            },
+
+            saveTask() {
+
+                this.saveProject();
+                this.isSubmitForm = true;
+
+
+
+
+                if (!this.params.title) {
+                    this.showMessage('Title is required.', 'error');
+                    return false;
+                }
+
+                if (this.params.id) {
+                    //update task
+                    this.pagedTasks = this.pagedTasks.map(d => {
+                        if (d.id === this.params.id) {
+                            d = this.params;
+                            d.description = this.quillEditor.root.innerHTML;
+                            d.descriptionText = this.quillEditor.getText();
+                        }
+                        return d;
+                    });
+                } else {
+                    //add task
+                    const maxid = this.allTasks.length ? this.allTasks.reduce((max, obj) => (obj.id > max ? obj.id : max), this.allTasks[0].id) : 0;
+
+                    const today = new Date();
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    const mm = String(today.getMonth());
+                    const yyyy = today.getFullYear();
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                    let task = this.params;
+                    task.id = maxid + 1;
+                    task.description = this.quillEditor.root.innerHTML;
+                    task.descriptionText = this.quillEditor.getText();
+                    task.date = monthNames[mm] + ', ' + dd + ' ' + yyyy;
+
+                    this.allTasks.splice(0, 0, task);
+                    this.searchTasks();
+                }
+
+                this.showMessage('Task has been saved successfully.');
+                this.addTaskModal = false;
+            },
+
+            
+
+
+            
+
+
+
+
+        }));
+    })
+
+</script>
+
+
+
+
+
+{% endblock %}
+
+
+
+ 

@@ -1,0 +1,12 @@
+{% extends 'admin/change_form.html' %}
+
+{% block content %}
+{{block.super}}
+
+<script>
+    if (document.getElementsByClassName("errornote").length ) {
+                    document.getElementsByClassName("errornote")[0].classList.add("hidden")
+                    //this.showMessage(contentIframe.getElementsByClassName("errornote")[0].textContent)
+                }
+</script>
+{% endblock %}

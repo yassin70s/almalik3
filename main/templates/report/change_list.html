@@ -1,0 +1,170 @@
+{% load static %}
+<html>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <head>
+    
+    <title>{{title}}</title>
+    <style type="text/css">
+        @page {
+            
+            margin: 0mm 0mm 0mm 0mm;
+            width: {{size.width}};
+            height: {{size.height}};
+            
+            margin-top: {{margin.top}};
+            margin-bottom: {{margin.bottom}};
+            
+        }
+    </style>
+
+</head>
+
+<body>
+<div dir="rtl" style="width: {{size.width}};padding: 4mm;" class="text-sm">
+    
+    {% block header_page %}
+    <div class="row">
+        <div class="col-4">
+          <address>
+            <center>
+                {% for address in address_list %}
+                    {{address}}<br>
+                {% endfor %}
+            </center>
+        </address>
+        </div>
+        <!-- /.col -->
+        <div class="col-4">
+            <center>
+                        بسم الله الرحمن الرحيم
+                    <address>
+                      
+                        <img src="{{logo}}" class="" style="width: 150px; hight: 150px;" alt="">
+                      </address>
+                      
+                      
+            </center>
+        </div>
+        <!-- /.col -->
+        <div class="col-4" style="text-align: center;">
+            
+                <b dir="ltr">الرقم: </b>##<br>
+                <b>التاريخ: </b><span dir="ltr">{{date_report}}</span>
+            <br>
+                    
+        </div>
+        <!-- /.col -->
+     
+    </div>
+    <!-- /.row --> 
+    
+    {% endblock %}
+    {% block title_report %}
+    <div class="row" style="height: 30px;background-color:rgba(48, 211, 233, 0.966);">
+        <div class="col-2">
+
+        </div>
+        <div class="col-8">
+            <center>
+                {{title_report}}
+            </center>
+
+        </div>
+        <div class="col-2">
+
+        </div>
+     
+    </div>
+    <!-- /.row --> 
+    <br>
+    {% endblock %}
+
+    
+    {% block header_report %}
+        
+    
+    <div class="row">
+        
+        {% for filter in list_filters %}
+        <div class="col-3 text-sm" style="text-align: center;">
+                <b>
+                    {{filter.title}}: 
+                </b>
+                    {% for choice in filter.choices %}
+                    
+                        {% if choice.selected %}
+                            {{choice.display}}
+                        {% endif %}
+                            
+                        
+                    {% endfor %}
+                               
+        </div> 
+        {% endfor %}
+        
+        {% if date_filter %} 
+            <div class="col-4 text-sm" style="text-align: center;">
+                <b>
+                    التاريخ:
+                </b>
+                <span dir="ltr">{{date_filter}}</span>
+                            
+            </div>
+        {% endif %}
+
+    </div>
+    <br>
+
+    {% endblock %}
+        
+
+
+    {% block content %}
+     
+                
+    <table class="table table-sm table-bordered" style="border: 1px outset black;">
+        <thead>
+            <tr>
+            
+                
+                {% for header in result_list.result_headers %}
+                <th >
+                    <div style="text-align: center; text-orientation: upright;writing-mode: vertical-rl;">
+                        {{header.text}}
+                    </div>
+                </th>
+                {% endfor %}
+               
+            
+            </tr>
+        </thead>  
+              
+        <tbody>
+            
+               
+                {% for result in result_list.results %}
+                <tr>
+                    
+                    
+                        {% for item in result %}
+                            {{ item }}
+                        {% endfor %}
+                    
+               
+                </tr>
+                {% endfor %}
+            
+            
+        </tbody>
+    </table>
+    {% endblock %}
+</div>
+
+
+
+
+
+</body>
+
+</html>
